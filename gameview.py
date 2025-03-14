@@ -3,6 +3,9 @@ import arcade
 class GameView(arcade.View):
     """Main in-game view."""
 
+    player_sprite: arcade.Sprite
+    player_sprite_list: arcade.SpriteList[arcade.Sprite]
+
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
         super().__init__()
@@ -17,11 +20,13 @@ class GameView(arcade.View):
         """Set up the game here."""
         self.player_sprite = arcade.Sprite(
             ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
-            ter_x=64,
-            ter_y=128
+            center_x=64,
+            center_y=128
         )
+        self.player_sprite_list = arcade.SpriteList()
+        self.player_sprite_list.append(self.player_sprite)
 
     def on_draw(self) -> None:
         """Render the screen."""
         self.clear() # always start with self.clear()
-        arcade.draw_sprite(self.player_sprite)
+        self.player_sprite_list.draw()
