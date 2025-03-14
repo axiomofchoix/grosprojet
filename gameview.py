@@ -5,6 +5,7 @@ class GameView(arcade.View):
 
     player_sprite: arcade.Sprite
     player_sprite_list: arcade.SpriteList[arcade.Sprite]
+    wall_list: arcade.SpriteList[arcade.Sprite]
 
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
@@ -25,8 +26,33 @@ class GameView(arcade.View):
         )
         self.player_sprite_list = arcade.SpriteList()
         self.player_sprite_list.append(self.player_sprite)
+        
+        self.wall_list = arcade.SpriteList(use_spatial_hash=True)
+
+        for i in range(20):
+            grass = arcade.Sprite(
+                ":resources:images/tiles/grassMid.png",
+                center_x=64*i,
+                center_y=32,
+                scale=0.5
+            )
+            self.wall_list.append(grass)
+
+
+
+        for j in range(3):
+            box = arcade.Sprite(
+                ":resources:images/tiles/boxCrate_double.png",
+                center_x=256*(j+1),
+                center_y=96,
+                scale=0.5
+            )
+            self.wall_list.append(box)
+
+
 
     def on_draw(self) -> None:
         """Render the screen."""
         self.clear() # always start with self.clear()
         self.player_sprite_list.draw()
+        self.wall_list.draw()
