@@ -35,15 +35,16 @@ class GameView(arcade.View):
     def on_key_press(self, key: int, modifiers: int) -> None:
         """Called when the user presses a key on the keyboard."""
         match key:
-            case arcade.key.RIGHT:
+            case arcade.key.D:
                 # start moving to the right
-                self.player_sprite.change_x = +PLAYER_MOVEMENT_SPEED
-            case arcade.key.LEFT:
+                self.player_sprite.change_x += PLAYER_MOVEMENT_SPEED
+            case arcade.key.A:
                 # start moving to the left
-                self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
-            case arcade.key.UP:
+                self.player_sprite.change_x -= PLAYER_MOVEMENT_SPEED
+            case arcade.key.SPACE:
                 # jump by giving an initial vertical speed
                 self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                self.player_sprite.width*=1.1
             case arcade.key.ESCAPE:
                 # jump by giving an initial vertical speed
                 self.player_sprite.center_x=64
@@ -52,9 +53,12 @@ class GameView(arcade.View):
     def on_key_release(self, key: int, modifiers: int) -> None:
         """Called when the user releases a key on the keyboard."""
         match key:
-            case arcade.key.RIGHT | arcade.key.LEFT:
+            case arcade.key.D:
                 # stop lateral movement
-                self.player_sprite.change_x = 0
+                self.player_sprite.change_x -=PLAYER_MOVEMENT_SPEED
+            case arcade.key.A:
+                # stop lateral movement
+                self.player_sprite.change_x += PLAYER_MOVEMENT_SPEED
 
 
     def setup(self) -> None:
@@ -62,13 +66,14 @@ class GameView(arcade.View):
         self.player_sprite = arcade.Sprite(
             ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
             center_x=64,
-            center_y=1024,
+            center_y=102,
             angle=2
         )
         self.player_sprite_list = arcade.SpriteList()
         self.player_sprite_list.append(self.player_sprite)
         self.wall_list = arcade.SpriteList()
-        for i in range(0,1281,64):
+        self.coin_list = arcade.SpriteList()
+        for i in range(0,11281,64):
             self.wall = arcade.Sprite(
                 ":resources:images/tiles/grassMid.png",
                 center_x=i,
@@ -84,6 +89,22 @@ class GameView(arcade.View):
                 scale=0.5
             )
             self.wall_list.append(self.box)
+            
+        self.box = arcade.Sprite(
+                ":resources:images/tiles/boxCrate_double.png",
+                center_x=512,
+                center_y=384,
+                scale=0.5
+        )
+        self.wall_list.append(self.box)
+        for i in range(256,769,256):
+            self.coin = arcade.Sprite(
+                ":resources:images/items/coinGold.png",
+                center_x=i,
+                center_y=144,
+                scale=0.5
+            )
+            self.coin_list.append(self.coin)
         
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite,
@@ -97,13 +118,25 @@ class GameView(arcade.View):
         This is where in-world time "advances", or "ticks".
         """
         self.physics_engine.update()
-        self.player_sprite.angle+=25
+        if self.camera.bottom_right.x-self.player_sprite.center_x<100:
+            self.camera.position = (self.player_sprite.center_x-500,360)
+        elif self.player_sprite.center_x-self.camera.bottom_left.x<100:
+            self.camera.position = (self.player_sprite.center_x+500,360)
+        self.player_sprite.angle+=5
+        r, g, b, a = self.player_sprite.color
+        self.player_sprite.color = ((r+5)%255, (g+2)%255, (b+1)%255, a)
+        for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
+            self.coin_list.remove(i)
+
+
     
     def on_draw(self) -> None:
         """Render the screen."""
         self.clear() # always start with self.clear()
-        self.player_sprite_list.draw()
-        self.wall_list.draw()
+        with self.camera.activate():
+            self.wall_list.draw()
+            self.player_sprite_list.draw()
+            self.coin_list.draw()
 
 class Window:
     view: GameView
