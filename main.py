@@ -5,8 +5,7 @@ from gameview import GameView
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Platformer"
-
-
+ 
 def main() -> None:
     """Main function."""
 
