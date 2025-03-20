@@ -16,7 +16,9 @@ class GameView(arcade.View):
     player_sprite: arcade.Sprite
     player_sprite_list: arcade.SpriteList[arcade.Sprite]
     wall_list: arcade.SpriteList[arcade.Sprite]
-    
+    coin_list: arcade.SpriteList[arcade.Sprite]
+    sound_list: list[arcade.Sound]
+
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
 
@@ -41,11 +43,18 @@ class GameView(arcade.View):
         self.player_sprite_list.append(self.player_sprite)
         
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
+        self.coin_list = arcade.SpriteList(use_spatial_hash=True)
 
-        for i in range(20):
+        self.sound_list=[]
+        son1 : arcade.Sound =arcade.load_sound(":resources:sounds/coin1.wav")
+        son2 : arcade.Sound =arcade.load_sound(":resources:sounds/jump1.wav")
+        self.sound_list.append(son1)
+        self.sound_list.append(son2)
+
+        for i in range(0,1280,64):
             grass = arcade.Sprite(
                 ":resources:images/tiles/grassMid.png",
-                center_x=64*i,
+                center_x=i,
                 center_y=32,
                 scale=0.5
             )
@@ -53,14 +62,23 @@ class GameView(arcade.View):
 
 
 
-        for j in range(3):
+        for j in range(256,1024,256):
             box = arcade.Sprite(
                 ":resources:images/tiles/boxCrate_double.png",
-                center_x=256*(j+1),
+                center_x=j,
                 center_y=96,
                 scale=0.5
             )
             self.wall_list.append(box)
+
+        for k in range(128, 1250, 256):
+            coin = arcade.Sprite(
+                ":resources:images/items/coinGold.png",
+                center_x=k,
+                center_y=96,
+                scale=0.5
+            )
+            self.coin_list.append(coin)
 
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite,
@@ -82,6 +100,7 @@ class GameView(arcade.View):
             case arcade.key.UP:
                 # jump by giving an initial vertical speed
                 self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                arcade.play_sound(self.sound_list[1])
             case arcade.key.SPACE:
                 # reset
                 GameView.setup(self)
@@ -103,6 +122,12 @@ class GameView(arcade.View):
         """
         self.physics_engine.update()
 
+        for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
+            #self.coin_list.remove(i)
+            i.remove_from_sprite_lists()
+            arcade.play_sound(self.sound_list[0])
+
+
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
         self.camera.position = self.player_sprite.position # type: ignore
     
@@ -112,7 +137,11 @@ class GameView(arcade.View):
         self.clear() # always start with self.clear()
         with self.camera.activate():
           self.wall_list.draw()
+          self.coin_list.draw()
           self.player_sprite_list.draw()
+          self.wall_list.draw_hit_boxes()
+          self.player_sprite_list.draw_hit_boxes()
+
 
 
     
