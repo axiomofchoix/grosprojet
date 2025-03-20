@@ -20,6 +20,15 @@ class GameView(arcade.View):
     box: arcade.Sprite
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
+    test: arcade.Sprite
+    coin_sound = arcade.load_sound(
+        ":resources:sounds/coin1.wav",
+        streaming = False
+        )
+    jump_sound = arcade.load_sound(
+        ":resources:sounds/jump1.wav",
+        streaming = False
+        )
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
         super().__init__()
@@ -43,8 +52,11 @@ class GameView(arcade.View):
                 self.player_sprite.change_x -= PLAYER_MOVEMENT_SPEED
             case arcade.key.SPACE:
                 # jump by giving an initial vertical speed
-                self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                if len(arcade.check_for_collision_with_list(self.test, self.wall_list))!=0:
+                    self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                    arcade.play_sound(self.jump_sound, loop = False,volume=0.1)
                 self.player_sprite.width*=1.1
+                self.test.width*=1.1
             case arcade.key.ESCAPE:
                 # jump by giving an initial vertical speed
                 self.player_sprite.center_x=64
@@ -67,7 +79,7 @@ class GameView(arcade.View):
             ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
             center_x=64,
             center_y=102,
-            angle=2
+            #angle=2
         )
         self.player_sprite_list = arcade.SpriteList()
         self.player_sprite_list.append(self.player_sprite)
@@ -105,6 +117,11 @@ class GameView(arcade.View):
                 scale=0.5
             )
             self.coin_list.append(self.coin)
+        self.test = arcade.Sprite(
+            ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
+            center_x=self.player_sprite.center_x,
+            center_y=self.player_sprite.center_y-1,
+        )
         
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite,
@@ -118,15 +135,17 @@ class GameView(arcade.View):
         This is where in-world time "advances", or "ticks".
         """
         self.physics_engine.update()
-        if self.camera.bottom_right.x-self.player_sprite.center_x<100:
-            self.camera.position = (self.player_sprite.center_x-500,360)
-        elif self.player_sprite.center_x-self.camera.bottom_left.x<100:
-            self.camera.position = (self.player_sprite.center_x+500,360)
-        self.player_sprite.angle+=5
+        if self.camera.bottom_right.x-self.player_sprite.center_x<125:
+            self.camera.position = (self.player_sprite.center_x-520,360)
+        elif self.player_sprite.center_x-self.camera.bottom_left.x<125:
+            self.camera.position = (self.player_sprite.center_x+520,360)
+        #self.player_sprite.angle+=5
         r, g, b, a = self.player_sprite.color
         self.player_sprite.color = ((r+5)%255, (g+2)%255, (b+1)%255, a)
         for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
             self.coin_list.remove(i)
+            arcade.play_sound(self.coin_sound, loop=False, volume=0.3)
+        self.test.position=(self.player_sprite.center_x,self.player_sprite.center_y-1)
 
 
     
@@ -137,6 +156,9 @@ class GameView(arcade.View):
             self.wall_list.draw()
             self.player_sprite_list.draw()
             self.coin_list.draw()
+        self.player_sprite.draw_hit_box()
+        self.wall_list.draw_hit_boxes()
+        self.test.draw_hit_box()
 
 class Window:
     view: GameView
