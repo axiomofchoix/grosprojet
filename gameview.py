@@ -46,6 +46,7 @@ class GameView(arcade.View):
         self.coin_list = arcade.SpriteList(use_spatial_hash=True)
 
         self.sound_list=[]
+
         son1 : arcade.Sound =arcade.load_sound(":resources:sounds/coin1.wav")
         son2 : arcade.Sound =arcade.load_sound(":resources:sounds/jump1.wav")
         self.sound_list.append(son1)
@@ -93,14 +94,15 @@ class GameView(arcade.View):
         match key:
             case arcade.key.RIGHT:
                 # start moving to the right
-                self.player_sprite.change_x = +PLAYER_MOVEMENT_SPEED
+                self.player_sprite.change_x +=PLAYER_MOVEMENT_SPEED
             case arcade.key.LEFT:
                 # start moving to the left
-                self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+                self.player_sprite.change_x -=PLAYER_MOVEMENT_SPEED
             case arcade.key.UP:
-                # jump by giving an initial vertical speed
-                self.player_sprite.change_y = PLAYER_JUMP_SPEED
-                arcade.play_sound(self.sound_list[1])
+                # jump by giving an initial vertical speed, if the player is on the ground
+                if self.physics_engine.can_jump():
+                    self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                    arcade.play_sound(self.sound_list[1])
             case arcade.key.SPACE:
                 # reset
                 GameView.setup(self)
@@ -110,10 +112,12 @@ class GameView(arcade.View):
     def on_key_release(self, key: int, modifiers: int) -> None:
         """Called when the user releases a key on the keyboard."""
         match key:
-            case arcade.key.RIGHT | arcade.key.LEFT:
+            case arcade.key.RIGHT:
                 # stop lateral movement
-                self.player_sprite.change_x = 0
-
+                self.player_sprite.change_x -=PLAYER_MOVEMENT_SPEED
+            case arcade.key.LEFT:
+                # stop lateral movement
+                self.player_sprite.change_x += PLAYER_MOVEMENT_SPEED
 
     def on_update(self, delta_time: float) -> None:
         """Called once per frame, before drawing.
@@ -130,7 +134,16 @@ class GameView(arcade.View):
 
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
         self.camera.position = self.player_sprite.position # type: ignore
-    
+
+        """if self.camera.bottom_right.x-self.player_sprite.center_x<384:
+            self.camera.position = (self.camera.position.x + PLAYER_MOVEMENT_SPEED,self.camera.position.y)
+        elif self.player_sprite.center_x-self.camera.bottom_left.x<512:
+            self.camera.position = (self.camera.position.x - PLAYER_MOVEMENT_SPEED,self.camera.position.y)
+        
+        if self.camera.bottom_right.y-self.player_sprite.center_y<180:
+            self.camera.position = (self.camera.position.x,self.player_sprite.center_y+PLAYER_JUMP_SPEED)
+        elif self.player_sprite.center_y-self.camera.bottom_left.y<180:
+            self.camera.position = (self.camera.position.x,self.player_sprite.center_y-60*PLAYER_GRAVITY)"""
     
     def on_draw(self) -> None:
         """Render the screen."""
