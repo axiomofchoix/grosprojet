@@ -21,6 +21,14 @@ class GameView(arcade.View):
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
     test: arcade.Sprite
+    coin_sound = arcade.load_sound(
+        ":resources:sounds/coin1.wav",
+        streaming = False
+        )
+    jump_sound = arcade.load_sound(
+        ":resources:sounds/jump1.wav",
+        streaming = False
+        )
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
         super().__init__()
@@ -46,7 +54,9 @@ class GameView(arcade.View):
                 # jump by giving an initial vertical speed
                 if len(arcade.check_for_collision_with_list(self.test, self.wall_list))!=0:
                     self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                    arcade.play_sound(self.jump_sound, loop = False,volume=0.1)
                 self.player_sprite.width*=1.1
+                self.test.width*=1.1
             case arcade.key.ESCAPE:
                 # jump by giving an initial vertical speed
                 self.player_sprite.center_x=64
@@ -108,10 +118,9 @@ class GameView(arcade.View):
             )
             self.coin_list.append(self.coin)
         self.test = arcade.Sprite(
-            ":resources:images/items/coinGold.png",
+            ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
             center_x=self.player_sprite.center_x,
-            center_y=self.player_sprite.center_y-60,
-            scale=0.2
+            center_y=self.player_sprite.center_y-1,
         )
         
         self.physics_engine = arcade.PhysicsEnginePlatformer(
@@ -135,7 +144,8 @@ class GameView(arcade.View):
         self.player_sprite.color = ((r+5)%255, (g+2)%255, (b+1)%255, a)
         for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
             self.coin_list.remove(i)
-        self.test.position=(self.player_sprite.center_x,self.player_sprite.center_y-60)
+            arcade.play_sound(self.coin_sound, loop=False, volume=0.3)
+        self.test.position=(self.player_sprite.center_x,self.player_sprite.center_y-1)
 
 
     
