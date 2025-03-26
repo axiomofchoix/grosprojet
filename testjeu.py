@@ -20,7 +20,13 @@ class GameView(arcade.View):
     box: arcade.Sprite
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
-    test: arcade.Sprite
+    bas: arcade.Sprite
+    gauche: arcade.Sprite
+    droite: arcade.Sprite
+    BOOL_TIMER: bool
+    TIMER: float
+    DROITE: bool
+    GAUCHE: bool
     coin_sound = arcade.load_sound(
         ":resources:sounds/coin1.wav",
         streaming = False
@@ -47,20 +53,36 @@ class GameView(arcade.View):
             case arcade.key.D:
                 # start moving to the right
                 self.player_sprite.change_x += PLAYER_MOVEMENT_SPEED
+                self.DROITE=True
             case arcade.key.A:
                 # start moving to the left
                 self.player_sprite.change_x -= PLAYER_MOVEMENT_SPEED
+                self.GAUCHE=True
             case arcade.key.SPACE:
                 # jump by giving an initial vertical speed
-                if len(arcade.check_for_collision_with_list(self.test, self.wall_list))!=0:
+                if len(arcade.check_for_collision_with_list(self.bas, self.wall_list))!=0:
                     self.player_sprite.change_y = PLAYER_JUMP_SPEED
                     arcade.play_sound(self.jump_sound, loop = False,volume=0.1)
-                self.player_sprite.width*=1.1
-                self.test.width*=1.1
+                if len(arcade.check_for_collision_with_list(self.gauche, self.wall_list))!=0:
+                    self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                    self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+                    arcade.play_sound(self.jump_sound, loop = False,volume=0.1)
+                    self.BOOL_TIMER = True
+                    #print('a')
+                if len(arcade.check_for_collision_with_list(self.droite, self.wall_list))!=0:
+                    self.player_sprite.change_y = PLAYER_JUMP_SPEED
+                    self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+                    arcade.play_sound(self.jump_sound, loop = False,volume=0.1)
+                    self.BOOL_TIMER = True
+                    #print('b')
+                #self.player_sprite.width*=1.1
+                #self.bas.width*=1.1
             case arcade.key.ESCAPE:
                 # jump by giving an initial vertical speed
                 self.player_sprite.center_x=64
                 self.player_sprite.center_y=64
+                self.player_sprite.change_x=0
+                self.player_sprite.change_y=0
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """Called when the user releases a key on the keyboard."""
@@ -68,9 +90,11 @@ class GameView(arcade.View):
             case arcade.key.D:
                 # stop lateral movement
                 self.player_sprite.change_x -=PLAYER_MOVEMENT_SPEED
+                self.DROITE=False
             case arcade.key.A:
                 # stop lateral movement
                 self.player_sprite.change_x += PLAYER_MOVEMENT_SPEED
+                self.GAUCHE=False
 
 
     def setup(self) -> None:
@@ -101,11 +125,26 @@ class GameView(arcade.View):
                 scale=0.5
             )
             self.wall_list.append(self.box)
+        for i in range(96,672,64):
+            self.box = arcade.Sprite(
+                ":resources:images/tiles/boxCrate_double.png",
+                center_x=800,
+                center_y=i,
+                scale=0.5
+            )
+            self.wall_list.append(self.box)
             
         self.box = arcade.Sprite(
                 ":resources:images/tiles/boxCrate_double.png",
                 center_x=512,
                 center_y=384,
+                scale=0.5
+        )
+        self.wall_list.append(self.box)
+        self.box = arcade.Sprite(
+                ":resources:images/tiles/boxCrate_double.png",
+                center_x=512,
+                center_y=320,
                 scale=0.5
         )
         self.wall_list.append(self.box)
@@ -117,10 +156,20 @@ class GameView(arcade.View):
                 scale=0.5
             )
             self.coin_list.append(self.coin)
-        self.test = arcade.Sprite(
+        self.bas = arcade.Sprite(
             ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
             center_x=self.player_sprite.center_x,
             center_y=self.player_sprite.center_y-1,
+        )
+        self.gauche = arcade.Sprite(
+            ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
+            center_x=self.player_sprite.center_x-1,
+            center_y=self.player_sprite.center_y,
+        )
+        self.droite = arcade.Sprite(
+            ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
+            center_x=self.player_sprite.center_x+1,
+            center_y=self.player_sprite.center_y,
         )
         
         self.physics_engine = arcade.PhysicsEnginePlatformer(
@@ -129,6 +178,10 @@ class GameView(arcade.View):
             gravity_constant=PLAYER_GRAVITY
         )
         self.camera = arcade.camera.Camera2D()
+        self.BOOL_TIMER = False
+        self.TIMER = 0
+        self.GAUCHE=False
+        self.DROITE=False
     def on_update(self, delta_time: float) -> None:
         """Called once per frame, before drawing.
 
@@ -144,8 +197,25 @@ class GameView(arcade.View):
         self.player_sprite.color = ((r+5)%255, (g+2)%255, (b+1)%255, a)
         for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
             self.coin_list.remove(i)
-            arcade.play_sound(self.coin_sound, loop=False, volume=0.3)
-        self.test.position=(self.player_sprite.center_x,self.player_sprite.center_y-1)
+            arcade.play_sound(self.coin_sound, loop=False, volume=0.1)
+        self.bas.position=(self.player_sprite.center_x,self.player_sprite.center_y-1)
+        self.gauche.position=(self.player_sprite.center_x-5,self.player_sprite.center_y)
+        self.droite.position=(self.player_sprite.center_x+5,self.player_sprite.center_y)
+        if self.BOOL_TIMER==True and self.TIMER<10:
+            self.TIMER+=1
+        elif self.TIMER>=10:
+            self.TIMER=0
+            self.BOOL_TIMER=False
+            if self.GAUCHE and self.DROITE:
+                self.player_sprite.change_x = 0
+            elif self.GAUCHE:
+                self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+            elif self.DROITE:
+                self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+            else:
+                self.player_sprite.change_x = 0
+
+
 
 
     
@@ -158,7 +228,9 @@ class GameView(arcade.View):
             self.coin_list.draw()
         self.player_sprite.draw_hit_box()
         self.wall_list.draw_hit_boxes()
-        self.test.draw_hit_box()
+        self.bas.draw_hit_box()
+        self.gauche.draw_hit_box()
+        self.droite.draw_hit_box()
 
 class Window:
     view: GameView
