@@ -32,15 +32,24 @@ Par exemple :
 
 ### Semaine 2
 
-Décrire ici ce que vous avez fait en semaine 2.
+Découverte du projet
 
 ### Semaine 3
 
+Début Tutoriel 1
+
 ### Semaine 4
+
+Fin Tutoriel 1 + améliorations (repasser sur la caméra)
 
 ### Semaine 5
 
+Début Tutoriel 2 + répartitions des tâches
+
 ### Semaine 6
+
+Fin Tutoriel 2, gestion des cartes pour l'un, Blobs et lave pour l'autre
+Début Tutoriel 3, modularisation du projet pour une meilleure clarté
 
 ### Semaine 7
 
