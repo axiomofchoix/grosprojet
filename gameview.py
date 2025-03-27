@@ -22,6 +22,7 @@ class GameView(arcade.View):
 
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
+    sound_manager=SoundManager
 
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
@@ -43,6 +44,7 @@ class GameView(arcade.View):
         self.player_sprite_list = arcade.SpriteList()
         self.player_sprite_list.append(self.player_sprite)
 
+        self.sound_manager=SoundManager()
         
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
         self.coin_list = arcade.SpriteList(use_spatial_hash=True)
@@ -98,7 +100,7 @@ class GameView(arcade.View):
                 # jump by giving an initial vertical speed, if the player is on the ground
                 if self.physics_engine.can_jump():
                     self.player_sprite.change_y = PLAYER_JUMP_SPEED
-                    arcade.play_sound(Sounds.sound_list["Jump"])
+                    arcade.play_sound(self.sound_manager.sound_list["Jump"])
             case arcade.key.SPACE:
                 # reset
                 GameView.setup(self)
@@ -125,7 +127,7 @@ class GameView(arcade.View):
         for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
             #self.coin_list.remove(i)
             i.remove_from_sprite_lists()
-            arcade.play_sound(Sounds.sound_list["Coin"])
+            arcade.play_sound(self.sound_manager.sound_list["Coin"])
 
 
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
