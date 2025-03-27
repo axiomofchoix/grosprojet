@@ -1,4 +1,6 @@
 import arcade
+from managers.mapManager import MapManager
+from managers.soundManager import SoundManager
 
 PLAYER_MOVEMENT_SPEED = 5 
 """Lateral speed of the player, in pixels per frame."""
@@ -17,7 +19,6 @@ class GameView(arcade.View):
     player_sprite_list: arcade.SpriteList[arcade.Sprite]
     wall_list: arcade.SpriteList[arcade.Sprite]
     coin_list: arcade.SpriteList[arcade.Sprite]
-    sound_list: list[arcade.Sound]
 
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
@@ -41,17 +42,12 @@ class GameView(arcade.View):
         )
         self.player_sprite_list = arcade.SpriteList()
         self.player_sprite_list.append(self.player_sprite)
+
         
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
         self.coin_list = arcade.SpriteList(use_spatial_hash=True)
 
-        self.sound_list=[]
-
-        son1 : arcade.Sound =arcade.load_sound(":resources:sounds/coin1.wav")
-        son2 : arcade.Sound =arcade.load_sound(":resources:sounds/jump1.wav")
-        self.sound_list.append(son1)
-        self.sound_list.append(son2)
-
+        
         for i in range(0,1280,64):
             grass = arcade.Sprite(
                 ":resources:images/tiles/grassMid.png",
@@ -102,7 +98,7 @@ class GameView(arcade.View):
                 # jump by giving an initial vertical speed, if the player is on the ground
                 if self.physics_engine.can_jump():
                     self.player_sprite.change_y = PLAYER_JUMP_SPEED
-                    arcade.play_sound(self.sound_list[1])
+                    arcade.play_sound(Sounds.sound_list["Jump"])
             case arcade.key.SPACE:
                 # reset
                 GameView.setup(self)
@@ -129,7 +125,7 @@ class GameView(arcade.View):
         for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
             #self.coin_list.remove(i)
             i.remove_from_sprite_lists()
-            arcade.play_sound(self.sound_list[0])
+            arcade.play_sound(Sounds.sound_list["Coin"])
 
 
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
