@@ -1,6 +1,6 @@
 import arcade
 from managers.mapManager import MapManager
-from managers.soundManager import SoundManager
+from managers.soundRegistry import SoundCollection
 
 PLAYER_MOVEMENT_SPEED = 5 
 """Lateral speed of the player, in pixels per frame."""
@@ -16,13 +16,13 @@ class GameView(arcade.View):
     """Main in-game view."""
 
     player_sprite: arcade.Sprite
-    player_sprite_list: arcade.SpriteList[arcade.Sprite]
-    wall_list: arcade.SpriteList[arcade.Sprite]
-    coin_list: arcade.SpriteList[arcade.Sprite]
 
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
-    sound_manager=SoundManager
+    sound_collection: SoundCollection
+    map_manager: MapManager
+    
+    level : int
 
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
@@ -36,52 +36,14 @@ class GameView(arcade.View):
 
     def setup(self) -> None:
         """Set up the game here."""
-        self.player_sprite = arcade.Sprite(
-            ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png",
-            center_x=64,
-            center_y=128
-        )
-        self.player_sprite_list = arcade.SpriteList()
-        self.player_sprite_list.append(self.player_sprite)
-
-        self.sound_manager=SoundManager()
-        
-        self.wall_list = arcade.SpriteList(use_spatial_hash=True)
-        self.coin_list = arcade.SpriteList(use_spatial_hash=True)
-
-        
-        for i in range(0,1280,64):
-            grass = arcade.Sprite(
-                ":resources:images/tiles/grassMid.png",
-                center_x=i,
-                center_y=32,
-                scale=0.5
-            )
-            self.wall_list.append(grass)
-
-
-
-        for j in range(256,1024,256):
-            box = arcade.Sprite(
-                ":resources:images/tiles/boxCrate_double.png",
-                center_x=j,
-                center_y=96,
-                scale=0.5
-            )
-            self.wall_list.append(box)
-
-        for k in range(128, 1250, 256):
-            coin = arcade.Sprite(
-                ":resources:images/items/coinGold.png",
-                center_x=k,
-                center_y=96,
-                scale=0.5
-            )
-            self.coin_list.append(coin)
+        self.level = 1
+        self.map_manager = MapManager(self.level)
+        self.player_sprite = self.map_manager.item_manager.player_sprite_list[0]
+        self.sound_collection=SoundCollection()
 
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite,
-            walls=self.wall_list,
+            walls=self.map_manager.item_manager.wall_list,
             gravity_constant=PLAYER_GRAVITY
         )
 
@@ -100,7 +62,7 @@ class GameView(arcade.View):
                 # jump by giving an initial vertical speed, if the player is on the ground
                 if self.physics_engine.can_jump():
                     self.player_sprite.change_y = PLAYER_JUMP_SPEED
-                    arcade.play_sound(self.sound_manager.sound_list["Jump"])
+                    arcade.play_sound(self.sound_collection.get_sound("Jump"))
             case arcade.key.SPACE:
                 # reset
                 GameView.setup(self)
@@ -124,10 +86,10 @@ class GameView(arcade.View):
         """
         self.physics_engine.update()
 
-        for i in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
+        for i in arcade.check_for_collision_with_list(self.player_sprite, self.map_manager.item_manager.coin_list):
             #self.coin_list.remove(i)
             i.remove_from_sprite_lists()
-            arcade.play_sound(self.sound_manager.sound_list["Coin"])
+            arcade.play_sound(self.sound_collection.get_sound("Coin"))
 
 
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
@@ -147,11 +109,11 @@ class GameView(arcade.View):
         """Render the screen."""
         self.clear() # always start with self.clear()
         with self.camera.activate():
-          self.wall_list.draw()
-          self.coin_list.draw()
-          self.player_sprite_list.draw()
-          self.wall_list.draw_hit_boxes()
-          self.player_sprite_list.draw_hit_boxes()
+          self.map_manager.item_manager.wall_list.draw()
+          self.map_manager.item_manager.coin_list.draw()
+          self.map_manager.item_manager.player_sprite_list.draw()
+          self.map_manager.item_manager.wall_list.draw_hit_boxes()
+          self.map_manager.item_manager.player_sprite_list.draw_hit_boxes()
 
 
 
