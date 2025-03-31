@@ -10,13 +10,14 @@ PLAYER_GRAVITY = 1
 """Gravity applied to the player, in pixels per frame²."""
 PLAYER_JUMP_SPEED = 18
 """Instant vertical speed for jumping, in pixels per frame."""
+one_pixel_texture = arcade.make_soft_square_texture(1, arcade.color.WHITE, outer_alpha=255)
 
 class GameView(arcade.View):
     """Main in-game view."""
     player_sprite: arcade.Sprite
-    player_sprite_list: arcade.SpriteList[arcade.Sprite]
+    player_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
     wall: arcade.Sprite
-    wall_list: arcade.SpriteList[arcade.Sprite]
+    wall_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
     box: arcade.Sprite
     physics_engine: arcade.PhysicsEnginePlatformer
     camera: arcade.camera.Camera2D
@@ -27,14 +28,27 @@ class GameView(arcade.View):
     TIMER: float
     DROITE: bool
     GAUCHE: bool
+    bench_sprite: arcade.Sprite
+    bench_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
+    lava_sprite: arcade.Sprite
+    lava_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
+    blob_sprite: arcade.Sprite
+    blob_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
+    blob_left_edge: arcade.Sprite
+    blob_right_edge: arcade.Sprite
+    blob_bool: bool
     coin_sound = arcade.load_sound(
         ":resources:sounds/coin1.wav",
         streaming = False
         )
     jump_sound = arcade.load_sound(
-        ":resources:sounds/jump1.wav",
+        ":resources:sounds/jump3.wav",
         streaming = False
         )
+    death_sound = arcade.load_sound(
+        ":resources:sounds/gameover1.wav",
+        streaming=False
+    )
     def __init__(self) -> None:
         # Magical incantion: initialize the Arcade view
         super().__init__()
@@ -109,6 +123,9 @@ class GameView(arcade.View):
         self.player_sprite_list.append(self.player_sprite)
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
+        self.bench_sprite_list = arcade.SpriteList()
+        self.lava_sprite_list = arcade.SpriteList()
+        self.blob_sprite_list = arcade.SpriteList()
         for i in range(0,11281,64):
             self.wall = arcade.Sprite(
                 ":resources:images/tiles/grassMid.png",
@@ -182,6 +199,41 @@ class GameView(arcade.View):
         self.TIMER = 0
         self.GAUCHE=False
         self.DROITE=False
+        self.bench_sprite = arcade.Sprite(
+            "hkbench.webp",
+            center_x=90,
+            center_y=95,
+            scale=0.8
+        )
+        self.bench_sprite_list.append(self.bench_sprite)
+        for i in range(350,450,64):
+            self.lava_sprite = arcade.Sprite(
+                ":resources:images/tiles/lava.png",
+                center_x=i,
+                center_y=0
+            )
+            self.lava_sprite_list.append(self.lava_sprite)
+        self.blob_sprite = arcade.Sprite(
+            ":resources:images/enemies/slimePurple.png",
+            center_x=495,
+            center_y=160,
+            scale=0.5
+        )
+        self.blob_sprite_list.append(self.blob_sprite)
+        self.blob_left_edge = arcade.Sprite(
+            one_pixel_texture,
+            center_x=self.blob_sprite.center_x-20,
+            center_y=self.blob_sprite.center_y-34,
+            scale=0.5
+        )
+        self.blob_right_edge = arcade.Sprite(
+            one_pixel_texture,
+            center_x=self.blob_sprite.center_x+20,
+            center_y=self.blob_sprite.center_y-34,
+            scale=0.5
+        )
+        self.blob_bool=True
+        
     def on_update(self, delta_time: float) -> None:
         """Called once per frame, before drawing.
 
@@ -214,6 +266,53 @@ class GameView(arcade.View):
                 self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
             else:
                 self.player_sprite.change_x = 0
+        if arcade.check_for_collision_with_list(self.bas,self.lava_sprite_list):
+            arcade.play_sound(self.death_sound, loop = False,volume=0.1)
+            self.setup()
+        if arcade.check_for_collision_with_list(self.blob_left_edge,self.wall_list) and arcade.check_for_collision_with_list(self.blob_right_edge,self.wall_list) and not(arcade.check_for_collision_with_list(self.blob_sprite,self.wall_list)):
+            print('a')
+            if self.blob_bool:
+                self.blob_sprite.center_x+=1
+                self.blob_left_edge.center_x+=1
+                self.blob_right_edge.center_x+=1
+            else:
+                self.blob_sprite.center_x-=1
+                self.blob_left_edge.center_x-=1
+                self.blob_right_edge.center_x-=1
+        elif not(arcade.check_for_collision_with_list(self.blob_left_edge,self.wall_list)):
+            print('b')
+            self.blob_bool=True
+            if self.blob_bool:
+                self.blob_sprite.center_x+=1
+                self.blob_left_edge.center_x+=1
+                self.blob_right_edge.center_x+=1
+            else:
+                self.blob_sprite.center_x-=1
+                self.blob_left_edge.center_x-=1
+                self.blob_right_edge.center_x-=1
+        elif not(arcade.check_for_collision_with_list(self.blob_right_edge,self.wall_list)):
+            print('c')
+            self.blob_bool=False
+            if self.blob_bool:
+                self.blob_sprite.center_x+=1
+                self.blob_left_edge.center_x+=1
+                self.blob_right_edge.center_x+=1
+            else:
+                self.blob_sprite.center_x-=1
+                self.blob_left_edge.center_x-=1
+                self.blob_right_edge.center_x-=1
+        elif arcade.check_for_collision_with_list(self.blob_sprite,self.wall_list):
+            print('d')
+            self.blob_bool=not(self.blob_bool)
+            if self.blob_bool:
+                self.blob_sprite.center_x+=1
+                self.blob_left_edge.center_x+=1
+                self.blob_right_edge.center_x+=1
+            else:
+                self.blob_sprite.center_x-=1
+                self.blob_left_edge.center_x-=1
+                self.blob_right_edge.center_x-=1
+        #print(len(arcade.check_for_collision_with_list(self.blob_left_edge,self.wall_list)))
 
 
 
@@ -223,14 +322,21 @@ class GameView(arcade.View):
         """Render the screen."""
         self.clear() # always start with self.clear()
         with self.camera.activate():
+            self.bench_sprite_list.draw()
             self.wall_list.draw()
             self.player_sprite_list.draw()
             self.coin_list.draw()
+            self.lava_sprite_list.draw()
+            self.blob_sprite_list.draw()
         self.player_sprite.draw_hit_box()
         self.wall_list.draw_hit_boxes()
         self.bas.draw_hit_box()
         self.gauche.draw_hit_box()
-        self.droite.draw_hit_box()
+        self.droite.draw_hit_box()  
+        self.blob_sprite.draw_hit_box()
+        self.blob_left_edge.draw_hit_box()
+        self.blob_right_edge.draw_hit_box()
+
 
 class Window:
     view: GameView
