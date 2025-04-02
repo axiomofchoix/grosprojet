@@ -28,8 +28,8 @@ class GameView(arcade.View):
     TIMER: float
     DROITE: bool
     GAUCHE: bool
-    bench_sprite: arcade.Sprite
-    bench_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
+    #bench_sprite: arcade.Sprite
+    #bench_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
     lava_sprite: arcade.Sprite
     lava_sprite_list: arcade.SpriteList[arcade.Sprite](use_spatial_hash=True)
     blob_sprite: arcade.Sprite
@@ -123,7 +123,7 @@ class GameView(arcade.View):
         self.player_sprite_list.append(self.player_sprite)
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
-        self.bench_sprite_list = arcade.SpriteList()
+        #self.bench_sprite_list = arcade.SpriteList()
         self.lava_sprite_list = arcade.SpriteList()
         self.blob_sprite_list = arcade.SpriteList()
         for i in range(0,11281,64):
@@ -199,13 +199,13 @@ class GameView(arcade.View):
         self.TIMER = 0
         self.GAUCHE=False
         self.DROITE=False
-        self.bench_sprite = arcade.Sprite(
-            "hkbench.webp",
-            center_x=90,
-            center_y=95,
-            scale=0.8
-        )
-        self.bench_sprite_list.append(self.bench_sprite)
+        #self.bench_sprite = arcade.Sprite(
+            #"hkbench.webp",
+            #center_x=90,
+            #center_y=95,
+            #scale=0.8
+        #)
+        #self.bench_sprite_list.append(self.bench_sprite)
         for i in range(350,450,64):
             self.lava_sprite = arcade.Sprite(
                 ":resources:images/tiles/lava.png",
@@ -322,7 +322,7 @@ class GameView(arcade.View):
         """Render the screen."""
         self.clear() # always start with self.clear()
         with self.camera.activate():
-            self.bench_sprite_list.draw()
+            #self.bench_sprite_list.draw()
             self.wall_list.draw()
             self.player_sprite_list.draw()
             self.coin_list.draw()
