@@ -1,4 +1,3 @@
-import arcade
 
 #gere les caractères, les traductions et les validités
 #regarder si enum ne pourrait pas etre utile
@@ -12,7 +11,7 @@ class MapChecker:
         
 
 
-    def is_valid(self,name : str) -> bool:
+    #def is_valid(self,name : str) -> bool:
 
         #doit verifier: 
         # bons caractères, 
@@ -22,7 +21,7 @@ class MapChecker:
         # la carte respecte la hauteur et largeur,
         # (bon format de fichier)
 
-        return True
+        #return True
 
     def translate(self, symbol:str) -> str:
         return self.translation_table[symbol]

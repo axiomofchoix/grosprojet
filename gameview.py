@@ -1,6 +1,12 @@
 import arcade
 from managers.mapManager import MapManager
 from managers.soundRegistry import SoundCollection
+from managers.playerManager import PlayerManager
+
+
+#il y a un problème avec la fonction esc pour reset le jeu
+
+
 
 PLAYER_MOVEMENT_SPEED = 5 
 """Lateral speed of the player, in pixels per frame."""
@@ -36,7 +42,7 @@ class GameView(arcade.View):
 
     def setup(self) -> None:
         """Set up the game here."""
-        self.level = 1
+        self.level: int = 1
         self.map_manager = MapManager(self.level)
         self.player_sprite = self.map_manager.item_manager.player_sprite_list[0]
         self.sound_collection=SoundCollection()
@@ -91,6 +97,9 @@ class GameView(arcade.View):
             i.remove_from_sprite_lists()
             arcade.play_sound(self.sound_collection.get_sound("Coin"))
 
+        for i in arcade.check_for_collision_with_list(self.player_sprite, self.map_manager.item_manager.no_go_list):
+            arcade.play_sound(self.sound_collection.get_sound("GameOver"))
+            GameView.setup(self)
 
         # Waiting for a new version of mypy with https://github.com/python/mypy/pull/18510
         self.camera.position = self.player_sprite.position # type: ignore
@@ -109,11 +118,14 @@ class GameView(arcade.View):
         """Render the screen."""
         self.clear() # always start with self.clear()
         with self.camera.activate():
-          self.map_manager.item_manager.wall_list.draw()
-          self.map_manager.item_manager.coin_list.draw()
-          self.map_manager.item_manager.player_sprite_list.draw()
-          self.map_manager.item_manager.wall_list.draw_hit_boxes()
-          self.map_manager.item_manager.player_sprite_list.draw_hit_boxes()
+            self.map_manager.item_manager.wall_list.draw()
+            self.map_manager.item_manager.coin_list.draw()
+            self.map_manager.item_manager.player_sprite_list.draw()
+            self.map_manager.item_manager.no_go_list.draw()
+            self.map_manager.item_manager.monster_list.draw()
+
+          #self.map_manager.item_manager.wall_list.draw_hit_boxes()
+          #self.map_manager.item_manager.player_sprite_list.draw_hit_boxes()
 
 
 

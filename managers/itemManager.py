@@ -1,5 +1,5 @@
 import arcade
-from itemRegistry import ItemCollection
+from .itemRegistry import ItemCollection
 
 #Gestion des listes de sprites
 

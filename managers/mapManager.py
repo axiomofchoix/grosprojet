@@ -1,6 +1,5 @@
-import arcade
-from mapChecker import MapChecker
-from itemManager import ItemManager
+from .mapChecker import MapChecker
+from .itemManager import ItemManager
 
 #lectures des cartes et vérification de la validité
 
@@ -38,7 +37,7 @@ class MapManager:
 
             writing=False
             for line in f:
-                line=line.strip()
+                line=line.rstrip()
                 bord=False
 
                 x=0
@@ -55,10 +54,8 @@ class MapManager:
                         x=x+64
 
                 y=y-64
-            print("ok")
+            
 
 
 
 #pourquoi pas essayer de renverser le fichier pour avoir les y initialisés à 0
-    
-map=MapManager(1)
